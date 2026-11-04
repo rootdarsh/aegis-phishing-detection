@@ -129,65 +129,94 @@ with tab_scan:
     st.subheader("Interactive Phishing URL Analyzer")
     st.caption("Test any suspicious URL through the AEGIS Multi-Layer Heuristic & ML Pipeline.")
 
-    url_input = st.text_input("Enter URL to analyze:", placeholder="e.g. http://192.168.1.1/secure-bank-login/update?id=98712")
+    # State management for demo presets
+    if "url_input_val" not in st.session_state:
+        st.session_state.url_input_val = ""
+    if "trigger_scan" not in st.session_state:
+        st.session_state.trigger_scan = False
 
-    preset_col1, preset_col2, preset_col3 = st.columns([1, 1, 1])
+    st.markdown("**Quick Demo Presets (For Live Presentations):**")
+    preset_col1, preset_col2, preset_col3, preset_col4 = st.columns([1.2, 1.2, 1.2, 0.6])
+    
     with preset_col1:
-        if st.button("🧪 Try Legitimate URL (Google)"):
-            url_input = "https://www.google.com/search?q=cybersecurity+defense"
+        if st.button("🧪 Legitimate (Google)", use_container_width=True):
+            st.session_state.url_input_val = "https://www.google.com/search?q=cybersecurity+defense"
+            st.session_state.trigger_scan = True
+            st.rerun()
     with preset_col2:
-        if st.button("⚠️ Try Suspicious Shortener"):
-            url_input = "http://tinyurl.com/free-reward-login-claim"
+        if st.button("⚠️ Suspicious Shortener", use_container_width=True):
+            st.session_state.url_input_val = "http://tinyurl.com/free-reward-login-claim"
+            st.session_state.trigger_scan = True
+            st.rerun()
     with preset_col3:
-        if st.button("🚨 Try High-Risk IP Phishing"):
-            url_input = "http://192.0.2.14:8080/paypal-verify-account/signin?confirm=true"
+        if st.button("🚨 High-Risk Phishing IP", use_container_width=True):
+            st.session_state.url_input_val = "http://192.0.2.14:8080/paypal-verify-account/signin?confirm=true"
+            st.session_state.trigger_scan = True
+            st.rerun()
+    with preset_col4:
+        if st.button("🗑️ Clear", use_container_width=True):
+            st.session_state.url_input_val = ""
+            st.session_state.trigger_scan = False
+            st.rerun()
 
-    if st.button("⚡ Inspect with AEGIS", type="primary", use_container_width=True) or url_input:
-        if url_input:
-            with st.spinner("Executing Heuristic & Machine Learning Inference..."):
-                try:
-                    resp = requests.post(
-                        f"{API_BASE_URL}/scan", 
-                        json={"url": url_input, "source": "web_dashboard"}, 
-                        timeout=3
-                    )
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        risk_score = data["risk_score"]
-                        verdict = data["verdict"]
-                        reasons = data["reasons"]
-                        features = data.get("features", {})
+    url_input = st.text_input(
+        "Enter or paste URL to analyze:",
+        value=st.session_state.url_input_val,
+        placeholder="e.g. http://192.168.1.1/secure-bank-login/update?id=98712"
+    )
 
-                        st.write("---")
-                        res_col1, res_col2 = st.columns([1, 2])
+    scan_button = st.button("⚡ Inspect with AEGIS", type="primary", use_container_width=True)
+    should_run = scan_button or st.session_state.trigger_scan
+    st.session_state.trigger_scan = False
+
+    if should_run and url_input.strip():
+        target_to_scan = url_input.strip()
+        with st.spinner("Executing Heuristic & Machine Learning Inference..."):
+            try:
+                resp = requests.post(
+                    f"{API_BASE_URL}/scan", 
+                    json={"url": target_to_scan, "source": "web_dashboard"}, 
+                    timeout=3
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    risk_score = data["risk_score"]
+                    verdict = data["verdict"]
+                    reasons = data["reasons"]
+                    features = data.get("features", {})
+
+                    st.write("---")
+                    res_col1, res_col2 = st.columns([1, 1.8])
+                    
+                    with res_col1:
+                        st.markdown("### Threat Assessment Verdict")
                         
-                        with res_col1:
-                            st.markdown(f"### Verdict: **{verdict.upper()}**")
-                            st.progress(risk_score / 100.0)
-                            st.markdown(f"**Threat Risk Score:** `{risk_score} / 100`")
-                            
-                            if verdict == "Dangerous":
-                                st.error("🚨 HIGH RISK PHISHING SITE: DO NOT ENTER CREDENTIALS")
-                            elif verdict == "Suspicious":
-                                st.warning("⚠️ SUSPICIOUS ANOMALIES DETECTED: EXERCISE CAUTION")
-                            else:
-                                st.success("✅ URL STRUCTURE APPEARS LEGITIMATE")
+                        # High-visibility verdict card
+                        if verdict == "Dangerous":
+                            st.error(f"🚨 **DANGEROUS PHISHING**\n\nHigh probability of credential harvesting or malware. Avoid navigating to this host.")
+                        elif verdict == "Suspicious":
+                            st.warning(f"⚠️ **SUSPICIOUS ANOMALIES**\n\nStructural evasion indicators detected. Exercise caution before entering data.")
+                        else:
+                            st.success(f"✅ **SAFE & VERIFIED**\n\nStructural lexical features and domain reputation match trusted legitimate patterns.")
 
-                        with res_col2:
-                            st.markdown("### Explainable AI Reason Breakdown")
-                            st.caption("Human-readable explanations generated by AEGIS Layer 1 & 7:")
-                            for r in reasons:
-                                st.markdown(f"- 📌 {r}")
+                        st.markdown(f"**Threat Risk Score:** `{risk_score} / 100`")
+                        st.progress(risk_score / 100.0)
 
-                        # Feature extraction breakdown table
-                        with st.expander("🔬 View 20 Extracted Heuristic Features"):
-                            feat_df = pd.DataFrame([features]).T.reset_index()
-                            feat_df.columns = ["Feature Name", "Extracted Value"]
-                            st.dataframe(feat_df, use_container_width=True)
-                    else:
-                        st.error(f"Error from API: {resp.text}")
-                except Exception as e:
-                    st.error(f"Failed to connect to AEGIS Backend API: {e}")
+                    with res_col2:
+                        st.markdown("### Explainable AI Reason Breakdown")
+                        st.caption("Human-readable rationale generated from AEGIS Layer 1 Heuristics & Model decision trees:")
+                        for r in reasons:
+                            st.markdown(f"- 📌 **{r}**")
+
+                    # Feature extraction breakdown table
+                    with st.expander("🔬 View 20 Extracted Heuristic Features"):
+                        feat_df = pd.DataFrame([features]).T.reset_index()
+                        feat_df.columns = ["Feature Name", "Extracted Value"]
+                        st.dataframe(feat_df, use_container_width=True)
+                else:
+                    st.error(f"Error from API: {resp.text}")
+            except Exception as e:
+                st.error(f"Failed to connect to AEGIS Backend API: {e}")
 
 with tab_history:
     st.subheader("Live Link Scan Logs (Extension + Web)")
