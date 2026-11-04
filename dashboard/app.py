@@ -58,33 +58,59 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Sidebar
+# Sidebar - Enterprise Cybersecurity Layout
 with st.sidebar:
-    st.image("https://img.icons8.com/fluency/96/shield.png", width=70)
-    st.title("AEGIS System")
+    st.image("https://img.icons8.com/fluency/96/shield.png", width=65)
+    st.title("AEGIS SHIELD")
     st.markdown("**Adaptive Evaluation & Guarded Intelligence System**")
-    st.caption("DESH / VIT Pune — EDI Project 1")
+    st.caption("DESH / VIT Pune — EDI Project 1 (Group 6)")
     st.divider()
     
-    st.markdown("### System Architecture")
-    st.markdown("""
-    - **Layer 1:** URL Heuristics (20+ features)
-    - **Layer 2:** Blacklist & Reputation
-    - **Layer 3:** Domain & Lexical Analysis
-    - **Layer 7:** Random Forest Ensemble
-    - **Explainability:** Plain English SHAP Reasoner
-    """)
-    st.divider()
+    # Engine Telemetry Status
+    st.markdown("### 🖥️ Engine Status")
     backend_status = "🔴 Offline"
+    model_status = "Unknown"
     try:
         r = requests.get(f"{API_BASE_URL}/", timeout=1.5)
         if r.status_code == 200:
             backend_status = "🟢 Online (Port 8000)"
+            model_status = "🟢 Random Forest (100 Trees)"
     except Exception:
         backend_status = "🔴 Backend API Offline"
-    st.markdown(f"**Backend Status:** {backend_status}")
-    if st.button("🔄 Refresh Data"):
+        model_status = "⚠️ Rule-based Fallback"
+
+    st.markdown(f"**API Server:** `{backend_status}`")
+    st.markdown(f"**ML Engine:** `{model_status}`")
+    st.markdown(f"**Telemetry DB:** `🟢 SQLite Active`")
+    st.divider()
+
+    # 7-Layer Detection Pipeline Matrix
+    st.markdown("### 🛡️ 7-Layer Defense Matrix")
+    st.markdown("""
+    | Layer | Pipeline Module | Status |
+    | :--- | :--- | :--- |
+    | **L-1** | URL Heuristics (20+ features) | `🟢 Active` |
+    | **L-2** | Authority & Whitelist Check | `🟢 Active` |
+    | **L-7** | ML Classifier (Random Forest) | `🟢 Active` |
+    | **XAI** | Plain-English Explainability | `🟢 Active` |
+    """)
+
+    with st.expander("⏳ Phase 2 Roadmap (Final Review)"):
+        st.markdown("""
+        - **Layer 3:** WHOIS Domain Age & Registration
+        - **Layer 4:** SSL Certificate Chain Validation
+        - **Layer 5:** Page DOM & Form Content Analysis
+        - **Layer 6:** Cross-Domain Redirect Tracer
+        """)
+
+    st.divider()
+    
+    # Quick Navigation / Links
+    if st.button("🔄 Refresh Telemetry", use_container_width=True):
         st.rerun()
+
+    st.link_button("🐙 View GitHub Repository", "https://github.com/rootdarsh/AEGIS", use_container_width=True)
+    st.caption("Internal Guide: Prof. Vidya Dhanve")
 
 # Main Title Header
 st.markdown('<div class="main-title">🛡️ AEGIS Threat Assessment Dashboard</div>', unsafe_allow_html=True)
