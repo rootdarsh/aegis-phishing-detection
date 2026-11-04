@@ -1,120 +1,135 @@
-/* AEGIS Shield Badges & Hover Tooltips */
+/* AEGIS Shield Badges & High-Contrast Tooltip Styling */
+
 .aegis-badge {
   display: inline-flex !important;
   position: relative !important;
-  margin-left: 8px !important;
+  margin: 0 5px !important;
   vertical-align: middle !important;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   font-size: 11px !important;
   font-style: normal !important;
+  font-weight: 600 !important;
   line-height: normal !important;
   direction: ltr !important;
   unicode-bidi: normal !important;
   writing-mode: horizontal-tb !important;
   transform: none !important;
-  z-index: 1000 !important;
+  z-index: 99999 !important;
 }
 
 .aegis-pill {
   display: inline-flex !important;
   align-items: center !important;
   gap: 4px !important;
-  padding: 2px 8px !important;
+  padding: 2px 7px !important;
   border-radius: 12px !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
+  font-size: 10px !important;
+  letter-spacing: 0.3px !important;
   cursor: pointer !important;
   direction: ltr !important;
   transform: none !important;
   white-space: nowrap !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) !important;
+  transition: transform 0.15s ease !important;
 }
 
-/* Safe (Green) */
+.aegis-pill:hover {
+  transform: scale(1.06) !important;
+}
+
+/* 🟢 Safe Badge - High Contrast */
 .aegis-safe .aegis-pill {
-  background: #def7ec !important;
-  color: #03543f !important;
-  border: 1px solid #84e1bc !important;
+  background: #dcfce7 !important;
+  color: #14532d !important;
+  border: 1.5px solid #22c55e !important;
 }
 
-/* Suspicious (Yellow/Orange) */
+/* 🟡 Suspicious Badge - High Contrast */
 .aegis-suspicious .aegis-pill {
-  background: #fef08a !important;
-  color: #854d0e !important;
-  border: 1px solid #fde047 !important;
+  background: #fef9c3 !important;
+  color: #713f12 !important;
+  border: 1.5px solid #eab308 !important;
 }
 
-/* Dangerous Phishing (Red) */
+/* 🔴 Dangerous Phishing Badge - High Contrast & Pulse */
 .aegis-dangerous .aegis-pill {
   background: #fee2e2 !important;
-  color: #991b1b !important;
-  border: 1px solid #f87171 !important;
+  color: #7f1d1d !important;
+  border: 1.5px solid #ef4444 !important;
   animation: aegis-pulse 1.8s infinite ease-in-out !important;
 }
 
 @keyframes aegis-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
   70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
   100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
-/* Tooltip on Hover */
+/* 🛡️ 100% Opaque High-Contrast Tooltip Card */
 .aegis-tooltip {
-  visibility: hidden;
-  opacity: 0;
-  width: 280px;
-  background-color: #1f2937;
-  color: #f9fafb;
-  text-align: left;
-  border-radius: 8px;
-  padding: 10px 12px;
-  position: absolute;
-  z-index: 1000000;
-  bottom: 130%;
-  left: 50%;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 290px !important;
+  background-color: #0f172a !important; /* Solid Slate-900 */
+  color: #f8fafc !important;
+  text-align: left !important;
+  border: 1.5px solid #38bdf8 !important; /* Crisp Sky Blue Border */
+  border-radius: 8px !important;
+  padding: 12px 14px !important;
+  position: absolute !important;
+  z-index: 1000000 !important;
+  bottom: 135% !important;
+  left: 50% !important;
   transform: translateX(-50%) !important;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-  font-size: 11px;
-  line-height: 1.4;
+  transition: opacity 0.2s ease, visibility 0.2s ease !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.4) !important;
+  font-size: 11px !important;
+  line-height: 1.45 !important;
   direction: ltr !important;
-  pointer-events: none;
+  pointer-events: none !important;
 }
 
+/* Tooltip Arrow */
 .aegis-tooltip::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #1f2937 transparent transparent transparent;
+  content: "" !important;
+  position: absolute !important;
+  top: 100% !important;
+  left: 50% !important;
+  margin-left: -6px !important;
+  border-width: 6px !important;
+  border-style: solid !important;
+  border-color: #38bdf8 transparent transparent transparent !important;
 }
 
 .aegis-badge:hover .aegis-tooltip {
-  visibility: visible;
-  opacity: 1;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .aegis-tooltip-title {
-  font-weight: 700;
-  font-size: 12px;
-  color: #60a5fa;
-  margin-bottom: 4px;
-  border-bottom: 1px solid #374151;
-  padding-bottom: 3px;
+  font-weight: 800 !important;
+  font-size: 12px !important;
+  color: #38bdf8 !important;
+  margin-bottom: 6px !important;
+  border-bottom: 1px solid #334155 !important;
+  padding-bottom: 4px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
 }
 
 .aegis-tooltip-verdict {
-  margin-bottom: 6px;
+  margin-bottom: 8px !important;
+  font-size: 11.5px !important;
+  color: #e2e8f0 !important;
 }
 
 .aegis-tooltip-reasons ul {
-  margin: 4px 0 0 0;
-  padding-left: 16px;
-  color: #d1d5db;
+  margin: 4px 0 0 0 !important;
+  padding-left: 16px !important;
+  color: #cbd5e1 !important;
 }
 
 .aegis-tooltip-reasons li {
-  margin-bottom: 3px;
+  margin-bottom: 4px !important;
 }
