@@ -16,6 +16,23 @@ st.set_page_config(
 # Custom Styling
 st.markdown("""
 <style>
+    /* Sleek Deep Navy/Charcoal Sidebar */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #090e17 0%, #0f172a 100%) !important;
+        border-right: 1px solid #1e293b !important;
+    }
+    [data-testid="stSidebar"] * {
+        color: #e2e8f0 !important;
+    }
+    [data-testid="stSidebar"] code {
+        background-color: #1e293b !important;
+        color: #38bdf8 !important;
+        border: 1px solid #334155 !important;
+    }
+    [data-testid="stSidebar"] hr {
+        border-color: #1e293b !important;
+    }
+
     .main-title {
         font-size: 2.2rem;
         font-weight: 700;
@@ -58,59 +75,51 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Sidebar - Enterprise Cybersecurity Layout
+# Sidebar - Real Product Layout
 with st.sidebar:
-    st.image("https://img.icons8.com/fluency/96/shield.png", width=65)
+    st.image("https://img.icons8.com/fluency/96/shield.png", width=60)
     st.title("AEGIS SHIELD")
-    st.markdown("**Adaptive Evaluation & Guarded Intelligence System**")
-    st.caption("DESH / VIT Pune — EDI Project 1 (Group 6)")
+    st.markdown("**Real-Time Autonomous Phishing Defense**")
+    st.caption("AI-Powered Threat Detection & Protection")
     st.divider()
     
-    # Engine Telemetry Status
-    st.markdown("### 🖥️ Engine Status")
+    # Engine Telemetry
+    st.markdown("### 🖥️ System Status")
     backend_status = "🔴 Offline"
-    model_status = "Unknown"
+    model_status = "Standby"
     try:
         r = requests.get(f"{API_BASE_URL}/", timeout=1.5)
         if r.status_code == 200:
             backend_status = "🟢 Online (Port 8000)"
-            model_status = "🟢 Random Forest (100 Trees)"
+            model_status = "🟢 Random Forest Active"
     except Exception:
-        backend_status = "🔴 Backend API Offline"
-        model_status = "⚠️ Rule-based Fallback"
+        backend_status = "🔴 Server Offline"
+        model_status = "⚠️ Fallback Mode"
 
-    st.markdown(f"**API Server:** `{backend_status}`")
-    st.markdown(f"**ML Engine:** `{model_status}`")
-    st.markdown(f"**Telemetry DB:** `🟢 SQLite Active`")
+    st.markdown(f"**Backend API:** `{backend_status}`")
+    st.markdown(f"**Threat Classifier:** `{model_status}`")
+    st.markdown(f"**Security Telemetry:** `🟢 Audit Logging`")
     st.divider()
 
-    # 7-Layer Detection Pipeline Matrix
-    st.markdown("### 🛡️ 7-Layer Defense Matrix")
+    # Active Protection Modules
+    st.markdown("### 🛡️ Core Protection Modules")
     st.markdown("""
-    | Layer | Pipeline Module | Status |
-    | :--- | :--- | :--- |
-    | **L-1** | URL Heuristics (20+ features) | `🟢 Active` |
-    | **L-2** | Authority & Whitelist Check | `🟢 Active` |
-    | **L-7** | ML Classifier (Random Forest) | `🟢 Active` |
-    | **XAI** | Plain-English Explainability | `🟢 Active` |
+    - ⚡ **Lexical Heuristics Engine**  
+      *Extracts & scores 20+ URL structural anomalies*
+    - 🌐 **Domain Reputation & Whitelist**  
+      *Instant verification of trusted authoritative hosts*
+    - 🧠 **Machine Learning Classifier**  
+      *Supervised probability analysis on live URL streams*
+    - 💡 **Explainable Threat Reasoner**  
+      *Translates AI detections into plain-language warnings*
     """)
-
-    with st.expander("⏳ Phase 2 Roadmap (Final Review)"):
-        st.markdown("""
-        - **Layer 3:** WHOIS Domain Age & Registration
-        - **Layer 4:** SSL Certificate Chain Validation
-        - **Layer 5:** Page DOM & Form Content Analysis
-        - **Layer 6:** Cross-Domain Redirect Tracer
-        """)
-
     st.divider()
     
-    # Quick Navigation / Links
+    # Navigation & Actions
     if st.button("🔄 Refresh Telemetry", use_container_width=True):
         st.rerun()
 
-    st.link_button("🐙 View GitHub Repository", "https://github.com/rootdarsh/AEGIS", use_container_width=True)
-    st.caption("Internal Guide: Prof. Vidya Dhanve")
+    st.link_button("🐙 Source Code on GitHub", "https://github.com/rootdarsh/AEGIS", use_container_width=True)
 
 # Main Title Header
 st.markdown('<div class="main-title">🛡️ AEGIS Threat Assessment Dashboard</div>', unsafe_allow_html=True)
