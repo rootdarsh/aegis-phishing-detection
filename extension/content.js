@@ -1,46 +1,74 @@
-// AEGIS Content Script - Real-Time Search & Webpage Link Scanner
+// AEGIS Content Script - Precision Link Highlighter & Threat Assessment
 const API_URL = "http://127.0.0.1:8000/scan-batch";
-
-// Cache analyzed URLs to prevent redundant network requests
 const scanCache = new Map();
 
-function getEligibleLinks() {
-  const links = document.querySelectorAll("a[href]");
-  const eligible = [];
-  
-  for (const a of links) {
-    // Avoid double tagging
-    if (a.dataset.aegisScanned) continue;
-    
-    const href = a.href;
-    if (!href || (!href.startsWith("http://") && !href.startsWith("https://"))) continue;
-    
-    // Skip internal navigation / google search auxiliary links
-    if (href.includes("google.com/search") || href.includes("google.com/url?")) continue;
-    if (href.startsWith("javascript:") || href.startsWith("#")) continue;
+function isGoogleSearch() {
+  return window.location.hostname.includes("google.");
+}
 
-    eligible.push({ element: a, url: href });
-    a.dataset.aegisScanned = "true";
+function getEligibleTargets() {
+  const targets = [];
+  
+  if (isGoogleSearch()) {
+    // Specifically target Google Search Result headings (<h3> inside an <a>)
+    // This strictly excludes search boxes, Google profile icons, reviews, and navbar tools
+    const headings = document.querySelectorAll("#search h3, #rso h3, div.g h3, div[data-sokoban-container] h3");
+    
+    for (const h3 of headings) {
+      if (h3.dataset.aegisProcessed) continue;
+
+      const anchor = h3.closest("a");
+      if (!anchor || !anchor.href) continue;
+
+      const href = anchor.href;
+      // Filter out internal Google links
+      if (!href.startsWith("http://") && !href.startsWith("https://")) continue;
+      if (href.includes("google.com/") || href.includes("google.co.in/")) continue;
+
+      h3.dataset.aegisProcessed = "true";
+      targets.push({
+        element: h3,
+        anchor: anchor,
+        url: href
+      });
+    }
+  } else {
+    // On general non-Google webpages: target main body links only (exclude navigation bars/headers/footers)
+    const links = document.querySelectorAll("main a[href], article a[href], #content a[href], .content a[href], p a[href]");
+    for (const a of links) {
+      if (a.dataset.aegisProcessed) continue;
+      const href = a.href;
+      if (!href || (!href.startsWith("http://") && !href.startsWith("https://"))) continue;
+      if (href.startsWith("javascript:") || href.startsWith("#")) continue;
+
+      a.dataset.aegisProcessed = "true";
+      targets.push({
+        element: a,
+        anchor: a,
+        url: href
+      });
+    }
   }
-  return eligible;
+
+  return targets;
 }
 
 async function scanPageLinks() {
-  const eligible = getEligibleLinks();
-  if (eligible.length === 0) return;
+  const targets = getEligibleTargets();
+  if (targets.length === 0) return;
 
   const urlMap = new Map();
   const urlsToFetch = [];
 
-  for (const item of eligible) {
+  for (const item of targets) {
     if (scanCache.has(item.url)) {
-      renderBadge(item.element, scanCache.get(item.url));
+      renderBadge(item.element, item.anchor, scanCache.get(item.url));
     } else {
       if (!urlMap.has(item.url)) {
         urlMap.set(item.url, []);
         urlsToFetch.push(item.url);
       }
-      urlMap.get(item.url).push(item.element);
+      urlMap.get(item.url).push(item);
     }
   }
 
@@ -63,22 +91,22 @@ async function scanPageLinks() {
       if (data && data.results) {
         for (const res of data.results) {
           scanCache.set(res.url, res);
-          const elements = urlMap.get(res.url) || [];
-          for (const el of elements) {
-            renderBadge(el, res);
+          const items = urlMap.get(res.url) || [];
+          for (const item of items) {
+            renderBadge(item.element, item.anchor, res);
           }
         }
       }
     } catch (err) {
-      // Backend may be offline or starting up; silently log
-      console.debug("[AEGIS Shield] Backend API unavailable:", err.message);
+      console.debug("[AEGIS Shield] Backend offline or busy:", err.message);
     }
   }
 }
 
-function renderBadge(element, result) {
-  // Check if already tagged
-  if (element.nextElementSibling && element.nextElementSibling.classList.contains("aegis-badge")) {
+function renderBadge(mountElement, anchorElement, result) {
+  // Avoid duplicate injection
+  if (mountElement.querySelector(".aegis-badge") || 
+     (mountElement.nextElementSibling && mountElement.nextElementSibling.classList?.contains("aegis-badge"))) {
     return;
   }
 
@@ -95,9 +123,9 @@ function renderBadge(element, result) {
     </span>
     <div class="aegis-tooltip">
       <div class="aegis-tooltip-title">🛡️ AEGIS Threat Assessment</div>
-      <div class="aegis-tooltip-verdict"><strong>Status:</strong> ${result.verdict} (Risk: ${result.risk_score}/100)</div>
+      <div class="aegis-tooltip-verdict"><strong>Verdict:</strong> ${result.verdict} | <strong>Risk:</strong> ${result.risk_score}/100</div>
       <div class="aegis-tooltip-reasons">
-        <strong>Detected Factors:</strong>
+        <strong>Reasons:</strong>
         <ul>
           ${(result.reasons || []).map(r => `<li>${r}</li>`).join("")}
         </ul>
@@ -105,31 +133,35 @@ function renderBadge(element, result) {
     </div>
   `;
 
-  // Attach safe click interception for dangerous phishing links
-  if (result.verdict === "Dangerous") {
-    element.addEventListener("click", function (e) {
-      const confirmNav = window.confirm(
-        `🚨 AEGIS SECURITY WARNING!\n\nThis link was flagged as DANGEROUS PHISHING (Risk Score: ${result.risk_score}/100).\n\nDestination: ${result.url}\n\nDo you really want to proceed to this untrusted website?`
+  // Intercept clicks on Dangerous Phishing links
+  if (result.verdict === "Dangerous" && anchorElement) {
+    anchorElement.addEventListener("click", function (e) {
+      const proceed = window.confirm(
+        `🚨 AEGIS SECURITY ALERT!\n\nThis link was flagged as HIGH-RISK PHISHING (Risk Score: ${result.risk_score}/100).\n\nDestination: ${result.url}\n\nDo you still wish to proceed?`
       );
-      if (!confirmNav) {
+      if (!proceed) {
         e.preventDefault();
         e.stopPropagation();
       }
     });
   }
 
-  // Insert badge right after link
-  element.insertAdjacentElement("afterend", badge);
+  // If mountElement is an H3, append the badge cleanly right after the title text
+  if (mountElement.tagName === "H3") {
+    mountElement.appendChild(badge);
+  } else {
+    mountElement.insertAdjacentElement("afterend", badge);
+  }
 }
 
-// Initial scan upon page load
-setTimeout(scanPageLinks, 1000);
+// Initial scan
+setTimeout(scanPageLinks, 600);
 
-// Observer to handle dynamically loaded search results (infinite scroll / AJAX)
+// Observer for dynamically loaded search results (infinite scroll)
 let debounceTimer;
 const observer = new MutationObserver(() => {
   clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(scanPageLinks, 1500);
+  debounceTimer = setTimeout(scanPageLinks, 1000);
 });
 
 observer.observe(document.body, { childList: true, subtree: true });

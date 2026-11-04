@@ -1,46 +1,49 @@
-/* AEGIS Link Highlighting & Threat Badges */
+/* AEGIS Shield Badges & Hover Tooltips */
 .aegis-badge {
-  display: inline-block !important;
+  display: inline-flex !important;
   position: relative !important;
-  margin-left: 6px !important;
+  margin-left: 8px !important;
   vertical-align: middle !important;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   font-size: 11px !important;
-  line-height: 1 !important;
-  z-index: 999999 !important;
+  font-style: normal !important;
+  line-height: normal !important;
+  direction: ltr !important;
+  unicode-bidi: normal !important;
+  writing-mode: horizontal-tb !important;
+  transform: none !important;
+  z-index: 1000 !important;
 }
 
 .aegis-pill {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 3px !important;
-  padding: 2px 7px !important;
+  gap: 4px !important;
+  padding: 2px 8px !important;
   border-radius: 12px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
-  transition: transform 0.15s ease !important;
+  direction: ltr !important;
+  transform: none !important;
+  white-space: nowrap !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15) !important;
 }
 
-.aegis-pill:hover {
-  transform: scale(1.05) !important;
-}
-
-/* Safe Badge */
+/* Safe (Green) */
 .aegis-safe .aegis-pill {
   background: #def7ec !important;
   color: #03543f !important;
   border: 1px solid #84e1bc !important;
 }
 
-/* Suspicious Badge */
+/* Suspicious (Yellow/Orange) */
 .aegis-suspicious .aegis-pill {
   background: #fef08a !important;
   color: #854d0e !important;
   border: 1px solid #fde047 !important;
 }
 
-/* Dangerous Badge */
+/* Dangerous Phishing (Red) */
 .aegis-dangerous .aegis-pill {
   background: #fee2e2 !important;
   color: #991b1b !important;
@@ -54,7 +57,7 @@
   100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
-/* Tooltip Popup on Hover */
+/* Tooltip on Hover */
 .aegis-tooltip {
   visibility: hidden;
   opacity: 0;
@@ -66,13 +69,14 @@
   padding: 10px 12px;
   position: absolute;
   z-index: 1000000;
-  bottom: 125%;
+  bottom: 130%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) !important;
   transition: opacity 0.2s ease, visibility 0.2s ease;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   font-size: 11px;
   line-height: 1.4;
+  direction: ltr !important;
   pointer-events: none;
 }
 
