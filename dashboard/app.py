@@ -130,41 +130,56 @@ with tab_scan:
     st.caption("Test any suspicious URL through the AEGIS Multi-Layer Heuristic & ML Pipeline.")
 
     # State management for demo presets and results
-    if "url_input_val" not in st.session_state:
-        st.session_state.url_input_val = ""
+    if "user_url_input" not in st.session_state:
+        st.session_state["user_url_input"] = ""
     if "trigger_scan" not in st.session_state:
         st.session_state.trigger_scan = False
     if "last_scan_result" not in st.session_state:
         st.session_state.last_scan_result = None
 
+    def set_preset(new_val):
+        st.session_state["user_url_input"] = new_val
+        if new_val:
+            st.session_state.trigger_scan = True
+        else:
+            st.session_state.trigger_scan = False
+            st.session_state.last_scan_result = None
+
     st.markdown("**Quick Demo Presets (For Live Presentations):**")
     preset_col1, preset_col2, preset_col3, preset_col4 = st.columns([1.2, 1.2, 1.2, 0.6])
     
     with preset_col1:
-        if st.button("🧪 Legitimate (Google)", use_container_width=True):
-            st.session_state.url_input_val = "https://www.google.com/search?q=cybersecurity+defense"
-            st.session_state.trigger_scan = True
-            st.rerun()
+        st.button(
+            "🧪 Legitimate (Google)", 
+            on_click=set_preset, 
+            args=("https://www.google.com/search?q=cybersecurity+defense",), 
+            use_container_width=True
+        )
     with preset_col2:
-        if st.button("⚠️ Suspicious Shortener", use_container_width=True):
-            st.session_state.url_input_val = "http://tinyurl.com/free-reward-login-claim"
-            st.session_state.trigger_scan = True
-            st.rerun()
+        st.button(
+            "⚠️ Suspicious Shortener", 
+            on_click=set_preset, 
+            args=("http://tinyurl.com/free-reward-login-claim",), 
+            use_container_width=True
+        )
     with preset_col3:
-        if st.button("🚨 High-Risk Phishing IP", use_container_width=True):
-            st.session_state.url_input_val = "http://192.0.2.14:8080/paypal-verify-account/signin?confirm=true"
-            st.session_state.trigger_scan = True
-            st.rerun()
+        st.button(
+            "🚨 High-Risk Phishing IP", 
+            on_click=set_preset, 
+            args=("http://192.0.2.14:8080/paypal-verify-account/signin?confirm=true",), 
+            use_container_width=True
+        )
     with preset_col4:
-        if st.button("🗑️ Clear", use_container_width=True):
-            st.session_state.url_input_val = ""
-            st.session_state.trigger_scan = False
-            st.session_state.last_scan_result = None
-            st.rerun()
+        st.button(
+            "🗑️ Clear", 
+            on_click=set_preset, 
+            args=("",), 
+            use_container_width=True
+        )
 
     url_input = st.text_input(
         "Enter or paste URL to analyze:",
-        value=st.session_state.url_input_val,
+        key="user_url_input",
         placeholder="e.g. http://192.168.1.1/secure-bank-login/update?id=98712"
     )
 
