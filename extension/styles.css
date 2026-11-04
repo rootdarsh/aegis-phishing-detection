@@ -1,5 +1,81 @@
-/* AEGIS Shield Badges & Root-Level Floating Card Styling */
+/* AEGIS Cross-Platform Precision Styling */
 
+/* ========================================================
+   1. MEDIA & VIDEO THUMBNAIL GLOWING BORDER LINING
+   ======================================================== */
+.aegis-media-frame {
+  position: relative !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+}
+
+/* 🟢 Safe Thumbnail Lining (Emerald) */
+.aegis-frame-safe {
+  box-shadow: 0 0 0 2.5px #22c55e !important;
+  border-radius: 12px !important;
+}
+
+/* 🟡 Suspicious Thumbnail Lining (Amber) */
+.aegis-frame-suspicious {
+  box-shadow: 0 0 0 2.5px #eab308 !important;
+  border-radius: 12px !important;
+}
+
+/* 🔴 Dangerous Phishing Thumbnail Lining (Glowing Red) */
+.aegis-frame-dangerous {
+  box-shadow: 0 0 0 3px #ef4444, 0 0 16px rgba(239, 68, 68, 0.5) !important;
+  border-radius: 12px !important;
+  animation: aegis-frame-pulse 1.8s infinite ease-in-out !important;
+}
+
+@keyframes aegis-frame-pulse {
+  0% { box-shadow: 0 0 0 3px #ef4444, 0 0 4px rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 3.5px #ef4444, 0 0 16px rgba(239, 68, 68, 0.7); }
+  100% { box-shadow: 0 0 0 3px #ef4444, 0 0 4px rgba(239, 68, 68, 0.4); }
+}
+
+/* Corner Chip inside Thumbnails */
+.aegis-corner-chip {
+  position: absolute !important;
+  top: 6px !important;
+  right: 6px !important;
+  z-index: 100 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  padding: 2px 6px !important;
+  border-radius: 6px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 9.5px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.4px !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+}
+
+.aegis-chip-safe {
+  background: rgba(6, 78, 59, 0.88) !important;
+  color: #a7f3d0 !important;
+  border: 1px solid #34d399 !important;
+}
+
+.aegis-chip-suspicious {
+  background: rgba(120, 53, 15, 0.88) !important;
+  color: #fde68a !important;
+  border: 1px solid #f59e0b !important;
+}
+
+.aegis-chip-dangerous {
+  background: rgba(127, 29, 29, 0.92) !important;
+  color: #fecaca !important;
+  border: 1px solid #f87171 !important;
+}
+
+/* ========================================================
+   2. GOOGLE SEARCH HEADING BADGES
+   ======================================================== */
 .aegis-badge {
   display: inline-flex !important;
   align-items: center !important;
@@ -13,13 +89,8 @@
   vertical-align: middle !important;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   font-size: 11px !important;
-  font-style: normal !important;
-  font-weight: 600 !important;
   line-height: normal !important;
   direction: ltr !important;
-  unicode-bidi: normal !important;
-  writing-mode: horizontal-tb !important;
-  transform: none !important;
 }
 
 .aegis-pill {
@@ -34,11 +105,7 @@
   font-weight: 700 !important;
   font-size: 10px !important;
   line-height: 1 !important;
-  letter-spacing: 0.3px !important;
   cursor: pointer !important;
-  direction: ltr !important;
-  transform: none !important;
-  white-space: nowrap !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) !important;
   transition: transform 0.15s ease !important;
 }
@@ -47,21 +114,18 @@
   transform: scale(1.06) !important;
 }
 
-/* 🟢 Safe Badge */
 .aegis-safe .aegis-pill {
   background: #dcfce7 !important;
   color: #14532d !important;
   border: 1.5px solid #22c55e !important;
 }
 
-/* 🟡 Suspicious Badge */
 .aegis-suspicious .aegis-pill {
   background: #fef9c3 !important;
   color: #713f12 !important;
   border: 1.5px solid #eab308 !important;
 }
 
-/* 🔴 Dangerous Phishing Badge */
 .aegis-dangerous .aegis-pill {
   background: #fee2e2 !important;
   color: #7f1d1d !important;
@@ -75,17 +139,57 @@
   100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
-/* 🛡️ Root-Level Floating Card (Appended to document.body, Immune to page stacking context) */
+/* ========================================================
+   3. DISCRETE INLINE LINKS & MICRO-SHIELD (YouTube, Blogs)
+   ======================================================== */
+.aegis-inline-link {
+  transition: border-bottom 0.2s ease !important;
+}
+
+.aegis-link-safe {
+  border-bottom: 1.5px dotted #22c55e !important;
+}
+
+.aegis-link-suspicious {
+  border-bottom: 2px solid #eab308 !important;
+}
+
+.aegis-link-dangerous {
+  border-bottom: 2px solid #ef4444 !important;
+  color: #ef4444 !important;
+}
+
+.aegis-micro-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-left: 4px !important;
+  vertical-align: middle !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  line-height: 1 !important;
+  opacity: 0.9 !important;
+  transition: transform 0.15s ease, opacity 0.15s ease !important;
+}
+
+.aegis-micro-badge:hover {
+  transform: scale(1.25) !important;
+  opacity: 1 !important;
+}
+
+/* ========================================================
+   4. ROOT-LEVEL FLOATING TOOLTIP
+   ======================================================== */
 #aegis-global-tooltip {
   display: none;
   visibility: hidden;
   position: absolute !important;
-  z-index: 2147483647 !important; /* Maximum 32-bit integer: Above every web element */
+  z-index: 2147483647 !important;
   width: 300px !important;
-  background-color: #0f172a !important; /* Solid Slate-900 */
+  background-color: #0f172a !important;
   color: #f8fafc !important;
   text-align: left !important;
-  border: 1.5px solid #38bdf8 !important; /* Crisp Sky Blue */
+  border: 1.5px solid #38bdf8 !important;
   border-radius: 8px !important;
   padding: 12px 14px !important;
   box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.85), 0 10px 15px -5px rgba(0, 0, 0, 0.7) !important;
@@ -97,7 +201,6 @@
   transition: opacity 0.15s ease !important;
 }
 
-/* Dynamic Direction Arrows */
 #aegis-global-tooltip.arrow-bottom::after {
   content: "" !important;
   position: absolute !important;
