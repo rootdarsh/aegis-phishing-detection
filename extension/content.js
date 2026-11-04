@@ -30,7 +30,7 @@
     const targets = [];
     
     if (isGoogleSearch()) {
-      // 1. Regular Google Search Results (ONLY the main <h3> heading links)
+      // 1. Google Search Results (ONLY the main <h3> heading links)
       const headings = document.querySelectorAll("#search h3, #rso h3, div.g h3, div[data-sokoban-container] h3");
       for (const h3 of headings) {
         if (h3.dataset.aegisProcessed) continue;
@@ -52,13 +52,11 @@
       }
 
       // 2. Video & Image Carousel Thumbnails ONLY (Shorts, YouTube videos, Image grid)
-      // Must contain a real visual thumbnail (width >= 80px), NOT a tiny 16px favicon!
       const allAnchors = document.querySelectorAll(
         "div[data-snc] a, g-inner-card a, div.isv-r a, div.x9P4oc a, div[jsname] a"
       );
       for (const a of allAnchors) {
         if (a.dataset.aegisProcessed) continue;
-        // Never tag if it's already an <h3> result
         if (a.querySelector("h3") || a.closest("h3")) continue;
 
         const href = a.href;
@@ -75,14 +73,13 @@
         a.dataset.aegisProcessed = "true";
         targets.push({
           type: "thumbnail",
-          element: img, // Directly highlight the image thumbnail
+          element: img,
           anchor: a,
           url: href
         });
       }
     } else {
       // 3. Regular External Webpages (YouTube, Wikipedia, Blogs)
-      // Discrete micro-shield for body text links
       const links = document.querySelectorAll("a[href]");
       let count = 0;
 
@@ -221,10 +218,28 @@
   function applyHighlight(item, result) {
     const verdictClass = result.verdict.toLowerCase();
 
-    // 1. VIDEO & IMAGE THUMBNAILS: Clean Lining directly on the image
+    // 1. VIDEO & IMAGE THUMBNAILS: Glowing Frame + Top-Left Frosted Glass Chip + Full Card Hover
     if (item.type === "thumbnail") {
       item.element.classList.add("aegis-thumb-lining", `aegis-thumb-${verdictClass}`);
-      attachTooltipEvents(item.element, result);
+      
+      // Ensure the card anchor container is positioned relatively so the chip stays inside it
+      item.anchor.style.position = item.anchor.style.position || "relative";
+
+      // Inject sleek Top-Left Frosted Glass Chip if not already present
+      if (!item.anchor.querySelector(".aegis-thumb-chip")) {
+        const chip = document.createElement("span");
+        chip.className = `aegis-thumb-chip aegis-chip-${verdictClass}`;
+        let icon = "🟢";
+        if (result.verdict === "Dangerous") icon = "🔴";
+        else if (result.verdict === "Suspicious") icon = "🟡";
+        chip.innerHTML = `${icon} ${result.verdict.toUpperCase()}`;
+        
+        attachTooltipEvents(chip, result);
+        item.anchor.appendChild(chip);
+      }
+
+      // Also attach hover to the entire thumbnail card so hovering ANYWHERE triggers the assessment!
+      attachTooltipEvents(item.anchor, result);
       return;
     }
 
