@@ -60,6 +60,8 @@
         if (!href || (!href.startsWith("http://") && !href.startsWith("https://"))) continue;
         if (href.startsWith("javascript:") || href.startsWith("#")) continue;
         if (href.includes("localhost") || href.includes("127.0.0.1")) continue;
+        // Skip in-page internal jump/anchor links
+        if (href.includes("#") && href.split("#")[0] === window.location.href.split("#")[0]) continue;
 
         const text = a.textContent.trim();
         if (!text || text.length < 2) continue;
