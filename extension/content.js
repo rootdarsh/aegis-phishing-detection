@@ -2,10 +2,21 @@
 const API_URL = "http://127.0.0.1:8000/scan-batch";
 const scanCache = new Map();
 
+// Initialize or get the single global root tooltip
+function getOrCreateGlobalTooltip() {
+  let tooltip = document.getElementById("aegis-global-tooltip");
+  if (!tooltip) {
+    tooltip = document.createElement("div");
+    tooltip.id = "aegis-global-tooltip";
+    tooltip.className = "aegis-floating-card";
+    document.body.appendChild(tooltip);
+  }
+  return tooltip;
+}
+
 function isGoogleSearch() {
   const host = window.location.hostname;
   const path = window.location.pathname;
-  // Strictly match Google Web Search (google.com/search), NOT play.google.com, docs.google.com, etc.
   return (host.includes("google.") && !host.startsWith("play.") && !host.startsWith("docs.") && !host.startsWith("drive.")) 
          && (path.startsWith("/search") || path === "/");
 }
@@ -14,7 +25,6 @@ function getEligibleTargets() {
   const targets = [];
   
   if (isGoogleSearch()) {
-    // 1. On Google Web Search: Target the main result headings
     const headings = document.querySelectorAll("#search h3, #rso h3, div.g h3, div[data-sokoban-container] h3");
     for (const h3 of headings) {
       if (h3.dataset.aegisProcessed) continue;
@@ -33,8 +43,6 @@ function getEligibleTargets() {
       });
     }
   } else {
-    // 2. On ANY other website (play.google.com, Wikipedia, blogs, portals, news)
-    // Scan real textual links on the page (cap at 60 links per scan to keep it lightning fast)
     const links = document.querySelectorAll("a[href]");
     let count = 0;
 
@@ -46,12 +54,9 @@ function getEligibleTargets() {
       if (!href || (!href.startsWith("http://") && !href.startsWith("https://"))) continue;
       if (href.startsWith("javascript:") || href.startsWith("#")) continue;
 
-      // Ensure link has visible text and is rendered on the screen
       const text = a.textContent.trim();
       if (!text || text.length < 2) continue;
       if (a.offsetWidth === 0 && a.offsetHeight === 0) continue;
-
-      // Avoid tagging header navigation or search bars if possible
       if (a.closest("nav, header, footer, [role='navigation']")) continue;
 
       a.dataset.aegisProcessed = "true";
@@ -88,7 +93,6 @@ async function scanPageLinks() {
 
   if (urlsToFetch.length === 0) return;
 
-  // Process in batches of 25 URLs
   const chunkSize = 25;
   for (let i = 0; i < urlsToFetch.length; i += chunkSize) {
     const chunk = urlsToFetch.slice(i, i + chunkSize);
@@ -118,7 +122,6 @@ async function scanPageLinks() {
 }
 
 function renderBadge(mountElement, anchorElement, result) {
-  // Avoid duplicate tags
   if (mountElement.querySelector(".aegis-badge") || 
      (mountElement.nextElementSibling && mountElement.nextElementSibling.classList?.contains("aegis-badge"))) {
     return;
@@ -131,11 +134,15 @@ function renderBadge(mountElement, anchorElement, result) {
   if (result.verdict === "Dangerous") icon = "🔴";
   else if (result.verdict === "Suspicious") icon = "🟡";
 
-  badge.innerHTML = `
-    <span class="aegis-pill">
-      ${icon} ${result.verdict.toUpperCase()} (${result.risk_score})
-    </span>
-    <div class="aegis-tooltip">
+  const pill = document.createElement("span");
+  pill.className = "aegis-pill";
+  pill.innerHTML = `${icon} ${result.verdict.toUpperCase()} (${result.risk_score})`;
+  badge.appendChild(pill);
+
+  // Bind Root-Level Global Floating Tooltip
+  pill.addEventListener("mouseenter", () => {
+    const tooltip = getOrCreateGlobalTooltip();
+    tooltip.innerHTML = `
       <div class="aegis-tooltip-title">🛡️ AEGIS Threat Assessment</div>
       <div class="aegis-tooltip-verdict">
         <strong>Verdict:</strong> ${result.verdict} &nbsp;|&nbsp; <strong>Risk:</strong> ${result.risk_score}/100
@@ -146,8 +153,47 @@ function renderBadge(mountElement, anchorElement, result) {
           ${(result.reasons || []).map(r => `<li>${r}</li>`).join("")}
         </ul>
       </div>
-    </div>
-  `;
+    `;
+
+    // Make visible to measure dimensions
+    tooltip.style.display = "block";
+    tooltip.style.visibility = "visible";
+
+    const rect = pill.getBoundingClientRect();
+    const tipRect = tooltip.getBoundingClientRect();
+
+    let top = rect.top + window.scrollY - tipRect.height - 10;
+    let left = rect.left + window.scrollX + (rect.width / 2) - (tipRect.width / 2);
+
+    // Smart Flip: if too close to the top of screen, flip below the badge!
+    if (rect.top - tipRect.height - 15 < 0) {
+      top = rect.bottom + window.scrollY + 10;
+      tooltip.classList.add("arrow-top");
+      tooltip.classList.remove("arrow-bottom");
+    } else {
+      tooltip.classList.add("arrow-bottom");
+      tooltip.classList.remove("arrow-top");
+    }
+
+    // Keep within left/right boundaries of the window
+    if (left < 15) left = 15;
+    if (left + tipRect.width > window.innerWidth - 15) {
+      left = window.innerWidth - tipRect.width - 15;
+    }
+
+    tooltip.style.top = `${top}px`;
+    tooltip.style.left = `${left}px`;
+    tooltip.style.opacity = "1";
+  });
+
+  pill.addEventListener("mouseleave", () => {
+    const tooltip = document.getElementById("aegis-global-tooltip");
+    if (tooltip) {
+      tooltip.style.opacity = "0";
+      tooltip.style.display = "none";
+      tooltip.style.visibility = "hidden";
+    }
+  });
 
   // Intercept clicks on Dangerous Phishing links
   if (result.verdict === "Dangerous" && anchorElement) {
@@ -162,19 +208,16 @@ function renderBadge(mountElement, anchorElement, result) {
     });
   }
 
-  // If inside an H3 on Google, append at the end of the heading text
+  // Insert badge cleanly
   if (mountElement.tagName === "H3") {
     mountElement.appendChild(badge);
   } else {
-    // On regular websites, insert cleanly right after the link
     mountElement.insertAdjacentElement("afterend", badge);
   }
 }
 
-// Initial scan
 setTimeout(scanPageLinks, 700);
 
-// Observer for infinite scrolling and dynamically loaded content
 let debounceTimer;
 const observer = new MutationObserver(() => {
   clearTimeout(debounceTimer);
