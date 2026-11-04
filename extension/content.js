@@ -1,4 +1,4 @@
-// AEGIS Content Script - Cross-Platform Precision Link & Media Highlighter
+// AEGIS Content Script - Surgical Precision Link & Media Highlighter
 (function () {
   // Never run on local development dashboard
   if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
@@ -30,7 +30,7 @@
     const targets = [];
     
     if (isGoogleSearch()) {
-      // 1. Target standard Google Search Result headings
+      // 1. Regular Google Search Results (ONLY the main <h3> heading links)
       const headings = document.querySelectorAll("#search h3, #rso h3, div.g h3, div[data-sokoban-container] h3");
       for (const h3 of headings) {
         if (h3.dataset.aegisProcessed) continue;
@@ -51,36 +51,43 @@
         });
       }
 
-      // 2. Target Google Media / Video / Image Thumbnail Cards
-      const mediaCards = document.querySelectorAll(
-        "div[data-snc] a, g-inner-card a, div.isv-r a, div.x9P4oc a, a:has(> div > img), a:has(> img)"
+      // 2. Video & Image Carousel Thumbnails ONLY (Shorts, YouTube videos, Image grid)
+      // Must contain a real visual thumbnail (width >= 80px), NOT a tiny 16px favicon!
+      const allAnchors = document.querySelectorAll(
+        "div[data-snc] a, g-inner-card a, div.isv-r a, div.x9P4oc a, div[jsname] a"
       );
-      for (const card of mediaCards) {
-        if (card.dataset.aegisProcessed) continue;
+      for (const a of allAnchors) {
+        if (a.dataset.aegisProcessed) continue;
+        // Never tag if it's already an <h3> result
+        if (a.querySelector("h3") || a.closest("h3")) continue;
 
-        const href = card.href;
+        const href = a.href;
         if (!href || (!href.startsWith("http://") && !href.startsWith("https://"))) continue;
         if (href.includes("google.com/search") || href.includes("localhost")) continue;
 
-        // Ensure card has a rendered visual thumbnail
-        const img = card.querySelector("img, video, [role='img']");
-        if (!img || (card.offsetWidth < 60 && card.offsetHeight < 60)) continue;
+        const img = a.querySelector("img, video");
+        if (!img) continue;
 
-        card.dataset.aegisProcessed = "true";
+        const rect = img.getBoundingClientRect();
+        // Ignore favicons and tiny site logos (which are 16x16 or 24x24)
+        if (rect.width < 75 || rect.height < 60) continue;
+
+        a.dataset.aegisProcessed = "true";
         targets.push({
-          type: "media_card",
-          element: card,
-          anchor: card,
+          type: "thumbnail",
+          element: img, // Directly highlight the image thumbnail
+          anchor: a,
           url: href
         });
       }
     } else {
-      // 3. On ANY other website (YouTube, Wikipedia, portals, blogs)
+      // 3. Regular External Webpages (YouTube, Wikipedia, Blogs)
+      // Discrete micro-shield for body text links
       const links = document.querySelectorAll("a[href]");
       let count = 0;
 
       for (const a of links) {
-        if (count >= 60) break;
+        if (count >= 50) break;
         if (a.dataset.aegisProcessed) continue;
 
         const href = a.href;
@@ -90,14 +97,13 @@
         if (href.includes("#") && href.split("#")[0] === window.location.href.split("#")[0]) continue;
 
         const text = a.textContent.trim();
-        const hasImg = a.querySelector("img, video");
-        if (!text && !hasImg) continue;
+        if (!text || text.length < 2) continue;
         if (a.offsetWidth === 0 && a.offsetHeight === 0) continue;
         if (a.closest("nav, header, footer, [role='navigation']")) continue;
 
         a.dataset.aegisProcessed = "true";
         targets.push({
-          type: hasImg && (a.offsetWidth > 100 || a.offsetHeight > 80) ? "media_card" : "inline_link",
+          type: "inline_link",
           element: a,
           anchor: a,
           url: href
@@ -153,7 +159,7 @@
           }
         }
       } catch (err) {
-        console.debug("[AEGIS Shield] Backend API unavailable:", err.message);
+        console.debug("[AEGIS Shield] Backend offline:", err.message);
       }
     }
   }
@@ -215,27 +221,14 @@
   function applyHighlight(item, result) {
     const verdictClass = result.verdict.toLowerCase();
 
-    // 1. MEDIA & VIDEO THUMBNAIL CARDS: Glowing Border Lining + Corner Shield
-    if (item.type === "media_card") {
-      item.element.classList.add("aegis-media-frame", `aegis-frame-${verdictClass}`);
-
-      // Inject small corner security badge if not already present
-      if (!item.element.querySelector(".aegis-corner-chip")) {
-        const cornerChip = document.createElement("span");
-        cornerChip.className = `aegis-corner-chip aegis-chip-${verdictClass}`;
-        let icon = "🛡️";
-        if (result.verdict === "Dangerous") icon = "🚨";
-        else if (result.verdict === "Suspicious") icon = "⚠️";
-        cornerChip.innerHTML = `${icon} ${result.verdict.toUpperCase()}`;
-        
-        attachTooltipEvents(cornerChip, result);
-        item.element.style.position = item.element.style.position || "relative";
-        item.element.appendChild(cornerChip);
-      }
+    // 1. VIDEO & IMAGE THUMBNAILS: Clean Lining directly on the image
+    if (item.type === "thumbnail") {
+      item.element.classList.add("aegis-thumb-lining", `aegis-thumb-${verdictClass}`);
+      attachTooltipEvents(item.element, result);
       return;
     }
 
-    // 2. GOOGLE SEARCH HEADING: Full Badges
+    // 2. GOOGLE SEARCH RESULT HEADING: Clean Pill Badge next to title text
     if (item.type === "heading") {
       if (item.element.querySelector(".aegis-badge")) return;
 
@@ -255,19 +248,16 @@
       return;
     }
 
-    // 3. INLINE GENERAL WEBPAGE LINKS (e.g. YouTube "Learn More"): Discrete Micro-Shield
+    // 3. INLINE LINKS ON GENERAL WEBSITES (e.g. YouTube): Discreet 13px Shield Icon
     if (item.type === "inline_link") {
-      if (item.element.nextElementSibling?.classList?.contains("aegis-micro-badge")) return;
+      if (item.element.nextElementSibling?.classList?.contains("aegis-inline-shield")) return;
 
-      item.element.classList.add("aegis-inline-link", `aegis-link-${verdictClass}`);
+      const shield = document.createElement("span");
+      shield.className = `aegis-inline-shield aegis-shield-${verdictClass}`;
+      shield.innerHTML = result.verdict === "Safe" ? "🛡️" : (result.verdict === "Suspicious" ? "⚠️" : "🚨");
 
-      const micro = document.createElement("span");
-      micro.className = `aegis-micro-badge aegis-micro-${verdictClass}`;
-      micro.title = `AEGIS: ${result.verdict} (${result.risk_score}/100)`;
-      micro.innerHTML = result.verdict === "Safe" ? "🛡️" : (result.verdict === "Suspicious" ? "⚠️" : "🚨");
-
-      attachTooltipEvents(micro, result);
-      item.element.insertAdjacentElement("afterend", micro);
+      attachTooltipEvents(shield, result);
+      item.element.insertAdjacentElement("afterend", shield);
     }
   }
 
