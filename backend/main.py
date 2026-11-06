@@ -10,7 +10,13 @@ from pydantic import BaseModel
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(CURRENT_DIR)
 
-from feature_extractor import extract_features_from_url, get_heuristic_reasons, is_trusted_authority, FEATURE_NAMES
+from feature_extractor import (
+    extract_features_from_url, 
+    get_heuristic_reasons, 
+    is_trusted_authority, 
+    detect_brand_impersonation,
+    FEATURE_NAMES
+)
 from database import init_db, log_scan, get_recent_scans, get_stats
 
 app = FastAPI(
@@ -80,6 +86,7 @@ def analyze_url(url: str) -> dict:
             "verdict": verdict,
             "badge_text": badge_text,
             "color": color,
+            "impersonation": {"is_impersonation": False},
             "reasons": reasons,
             "features": features
         }
@@ -98,6 +105,15 @@ def analyze_url(url: str) -> dict:
             (15 if not features.get("has_https") else 0)
         )
         risk_score = min(max(heuristic_score, 5), 98)
+
+    # Active Brand Impersonation Hunter
+    impersonation = detect_brand_impersonation(domain, url)
+    if impersonation.get("is_impersonation"):
+        risk_score = max(risk_score, 88)
+        reasons.insert(
+            0, 
+            f"🚨 BRAND IMPERSONATION: Visual spoofing targeting '{impersonation['spoofed_brand']}' ({impersonation['technique']}; genuine: {impersonation['official_domain']})."
+        )
 
     # Risk classification thresholds
     if risk_score >= 65:
@@ -119,6 +135,7 @@ def analyze_url(url: str) -> dict:
         "verdict": verdict,
         "badge_text": badge_text,
         "color": color,
+        "impersonation": impersonation,
         "reasons": reasons,
         "features": features
     }

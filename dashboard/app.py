@@ -153,9 +153,10 @@ with col4:
 
 st.divider()
 
-# Tab layout: Manual Scan Analyzer & Live Telemetry
-tab_scan, tab_history, tab_metrics = st.tabs([
+# Tab layout: Manual Scan Analyzer, Adversarial Playground & Telemetry
+tab_scan, tab_playground, tab_history, tab_metrics = st.tabs([
     "🔍 Real-Time URL Inspector", 
+    "🧪 Adversarial Mutation Playground",
     "📋 Telemetry & Scan History", 
     "📊 Model Performance & Metrics"
 ])
@@ -273,6 +274,104 @@ with tab_scan:
             feat_df = pd.DataFrame([features]).T.reset_index()
             feat_df.columns = ["Feature Name", "Extracted Value"]
             st.dataframe(feat_df, use_container_width=True)
+
+with tab_playground:
+    st.subheader("🧪 Adversarial Attack & Mutation Playground")
+    st.caption("Interactively simulate real-world cyber attack evasion tactics to test AEGIS's zero-day resilience.")
+
+    st.markdown("""
+    > [!NOTE]  
+    > **The Problem with Competitors:** Static blacklists (like Google Safe Browsing) only catch phishing links **hours or days** after they are reported.  
+    > **AEGIS Innovation:** Our real-time **Visual Homoglyph & Levenshtein Engine** catches brand impersonation and evasion mutations dynamically on the first encounter!
+    """)
+
+    st.write("---")
+    
+    brand_catalog = {
+        "PayPal": {"brand": "paypal", "official": "https://www.paypal.com", "typo": "paypa1"},
+        "Google": {"brand": "google", "official": "https://accounts.google.com", "typo": "gooogle"},
+        "Microsoft": {"brand": "microsoft", "official": "https://login.microsoft.com", "typo": "micros0ft"},
+        "Apple": {"brand": "apple", "official": "https://appleid.apple.com", "typo": "app1e"},
+        "VIT Pune": {"brand": "vit", "official": "https://www.vit.edu", "typo": "v1t-pune"},
+        "State Bank of India": {"brand": "sbi", "official": "https://onlinesbi.sbi", "typo": "onlinesb1"}
+    }
+
+    selected_brand = st.selectbox(
+        "1. Select a Genuine Brand to Target:",
+        list(brand_catalog.keys())
+    )
+
+    brand_info = brand_catalog[selected_brand]
+
+    st.markdown("##### 2. Toggle Adversarial Evasion Vectors:")
+    mut_col1, mut_col2 = st.columns(2)
+    with mut_col1:
+        m_typo = st.checkbox("🎭 Visual Typosquatting (Homoglyph replacement e.g. l → 1, o → 0)", value=True)
+        m_subdomain = st.checkbox("🌐 Deceptive Subdomain Nesting (e.g. secure.auth.portal...)", value=False)
+        m_tld = st.checkbox("🚩 Untrusted Phishing TLD (.top / .xyz instead of .com)", value=True)
+    with mut_col2:
+        m_ip = st.checkbox("💻 Numeric IP Host Framing (Replace domain with raw IP 192.168.4.15)", value=False)
+        m_path = st.checkbox("🎣 Credential Trap Endpoint (/signin/verify-account/session)", value=True)
+        m_http = st.checkbox("🔓 Strip Transport Security (Downgrade HTTPS → cleartext HTTP)", value=True)
+
+    # Dynamic URL Synthesizer
+    scheme = "http://" if m_http else "https://"
+    
+    if m_ip:
+        host = "192.168.4.15:8080"
+    else:
+        domain_label = brand_info["typo"] if m_typo else brand_info["brand"]
+        tld = ".top" if m_tld else ".com"
+        if selected_brand == "VIT Pune" and not m_tld:
+            tld = ".edu"
+        
+        if m_subdomain:
+            host = f"secure-auth.portal.{domain_label}-verify{tld}"
+        elif m_typo:
+            host = f"{domain_label}-security{tld}"
+        else:
+            host = f"{domain_label}{tld}"
+
+    path = "/signin/verify-identity/session_token" if m_path else ""
+    adversarial_url = f"{scheme}{host}{path}"
+
+    st.markdown("##### 3. Synthesized Adversarial Attack URL:")
+    st.code(adversarial_url, language="text")
+
+    if st.button("⚡ Test Adversarial Mutation Against AEGIS", type="primary", use_container_width=True):
+        with st.spinner("Analyzing adversarial evasion patterns..."):
+            try:
+                # Test genuine URL
+                orig_res = requests.post(f"{API_BASE_URL}/scan", json={"url": brand_info["official"], "source": "playground"}, timeout=3).json()
+                # Test mutated URL
+                mut_res = requests.post(f"{API_BASE_URL}/scan", json={"url": adversarial_url, "source": "playground"}, timeout=3).json()
+
+                st.write("---")
+                st.markdown("### 📊 Adversarial Defense Comparison")
+                
+                cmp1, cmp2 = st.columns(2)
+                with cmp1:
+                    st.markdown(f"#### 🏛️ Genuine Authority: `{selected_brand}`")
+                    st.markdown(f"**URL:** `{brand_info['official']}`")
+                    st.success(f"**Verdict:** {orig_res['verdict'].upper()} (Risk: {orig_res['risk_score']}/100)")
+                    st.caption("Domain recognized as verified authority. Protected against false positives.")
+
+                with cmp2:
+                    st.markdown("#### 🚨 Mutated Adversarial Link")
+                    st.markdown(f"**URL:** `{adversarial_url}`")
+                    if mut_res['verdict'] == "Dangerous":
+                        st.error(f"**Verdict:** DANGEROUS PHISHING (Risk: {mut_res['risk_score']}/100)")
+                    else:
+                        st.warning(f"**Verdict:** {mut_res['verdict'].upper()} (Risk: {mut_res['risk_score']}/100)")
+                    st.caption("Evasion attempt successfully intercepted by AEGIS Multi-Layer Defense!")
+
+                st.write("---")
+                st.markdown("#### 🛡️ AEGIS Intercepted Threats & Rationale:")
+                for r in mut_res.get("reasons", []):
+                    st.markdown(f"- 📌 **{r}**")
+
+            except Exception as e:
+                st.error(f"Backend connection error: {e}")
 
 with tab_history:
     st.subheader("Live Link Scan Logs (Extension + Web)")

@@ -19,8 +19,96 @@ TRUSTED_DOMAINS = {
     "google.com", "google.co.in", "youtube.com", "wikipedia.org", "github.com",
     "microsoft.com", "apple.com", "amazon.com", "amazon.in", "linkedin.com",
     "vit.edu", "stackoverflow.com", "reddit.com", "twitter.com", "x.com",
-    "netflix.com", "spotify.com", "medium.com", "cloudflare.com", "python.org"
+    "netflix.com", "spotify.com", "medium.com", "cloudflare.com", "python.org",
+    "paypal.com", "facebook.com", "instagram.com", "binance.com", "sbi.co.in"
 }
+
+# Targeted Brands for Active Impersonation & Typosquatting Hunter
+TARGET_BRANDS = {
+    "paypal": "paypal.com",
+    "google": "google.com",
+    "microsoft": "microsoft.com",
+    "apple": "apple.com",
+    "amazon": "amazon.com",
+    "netflix": "netflix.com",
+    "instagram": "instagram.com",
+    "facebook": "facebook.com",
+    "binance": "binance.com",
+    "vit": "vit.edu",
+    "sbi": "sbi.co.in",
+    "hdfc": "hdfcbank.com",
+    "github": "github.com"
+}
+
+def levenshtein_distance(s1: str, s2: str) -> int:
+    """Calculates Levenshtein edit distance between two strings."""
+    if len(s1) < len(s2):
+        return levenshtein_distance(s2, s1)
+    if len(s2) == 0:
+        return len(s1)
+    previous_row = range(len(s2) + 1)
+    for i, c1 in enumerate(s1):
+        current_row = [i + 1]
+        for j, c2 in enumerate(s2):
+            insertions = previous_row[j + 1] + 1
+            deletions = current_row[j] + 1
+            substitutions = previous_row[j] + (c1 != c2)
+            current_row.append(min(insertions, deletions, substitutions))
+        previous_row = current_row
+    return previous_row[-1]
+
+def normalize_homoglyphs(text: str) -> str:
+    """Normalizes visual character substitutions (e.g. paypa1 -> paypal, micros0ft -> microsoft)."""
+    substitutions = {
+        '0': 'o', '1': 'l', '3': 'e', '4': 'a', '5': 's', 
+        '8': 'b', '@': 'a', 'vv': 'w', 'rn': 'm', 'cl': 'd'
+    }
+    t = text.lower()
+    for k, v in substitutions.items():
+        t = t.replace(k, v)
+    return t
+
+def detect_brand_impersonation(domain: str, url: str) -> dict:
+    """
+    Active Brand Impersonation & Typosquatting Hunter.
+    Compares the URL against top targeted global & financial brands.
+    """
+    domain = domain.lower().split(":")[0]
+    
+    # Check if domain itself is the genuine official brand host
+    for brand, official in TARGET_BRANDS.items():
+        if domain == official or domain.endswith("." + official):
+            return {"is_impersonation": False}
+
+    # Extract core domain label (strip common TLDs)
+    domain_parts = domain.split(".")
+    core_label = domain_parts[0] if len(domain_parts) <= 2 else domain_parts[-2]
+    normalized_core = normalize_homoglyphs(core_label)
+    normalized_full = normalize_homoglyphs(domain)
+
+    for brand, official in TARGET_BRANDS.items():
+        # Case A: Visual Typosquatting (Levenshtein distance 1 or 2)
+        dist = levenshtein_distance(normalized_core, brand)
+        if 1 <= dist <= 2 and len(brand) >= 4:
+            return {
+                "is_impersonation": True,
+                "spoofed_brand": brand.capitalize(),
+                "official_domain": official,
+                "technique": f"Visual Typosquatting (Distance: {dist})",
+                "penalty": 55
+            }
+
+        # Case B: Brand Squatting in Hostname (e.g. paypal-security-portal.top or verify-apple.com)
+        if brand in normalized_full and not domain.endswith("." + official):
+            return {
+                "is_impersonation": True,
+                "spoofed_brand": brand.capitalize(),
+                "official_domain": official,
+                "technique": "Unauthorized Brand Squatting in Domain",
+                "penalty": 50
+            }
+
+    return {"is_impersonation": False}
 
 IP_PATTERN = re.compile(
     r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
