@@ -50,7 +50,7 @@ Traditional solutions either scan emails post-delivery, act as proprietary black
 ### 2. Installation
 Clone the repository and install dependencies:
 ```bash
-git clone https://github.com/<your-username>/aegis-phishing-detection.git
+git clone https://github.com/rootdarsh/aegis-phishing-detection.git
 cd aegis-phishing-detection
 pip install -r requirements.txt
 ```
