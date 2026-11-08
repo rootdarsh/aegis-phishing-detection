@@ -94,17 +94,3 @@ The current model is a **Random Forest Ensemble (100 estimators)** trained on a 
   - `count_subdomains`: Deep subdomain nesting for brand spoofing
   - `has_https`: Transport layer security validation
 
----
-
-## 👥 Project Team (Group No. 6 — DESH, VIT Pune)
-
-| Student Name | PRN / GR No. | Designated Role |
-|:---|:---:|:---|
-| **Dandnaik Shreyash Somnath** | 12612242 | QA, Empirical Testing & Compliance Lead |
-| **Dange Sharwal Shailesh** | 12610050 | Backend Engineer (FastAPI Microservice & SQLite) |
-| **Darsh Hemantkumar Raut** | 12611013 | ML & Feature Engineer (Model Pipeline & Architecture) |
-| **Darade Rohan Rajendra** | 12611258 | Research & Threat Intelligence (Literature & Evasion Study) |
-| **Darsh Jain** | 12611575 | Frontend Engineer (Chrome Extension & DOM Injection) |
-
-**Project Guide:** Prof. Vidya Dhanve  
-**Course:** Engineering Design & Innovation Project 1 (EDI 1) — Nov 2026
