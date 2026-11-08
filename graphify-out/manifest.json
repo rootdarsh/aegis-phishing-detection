@@ -66,10 +66,10 @@
     "semantic_hash": "b9807922e4283864cb4a0b9600b9bf00"
   },
   "README.md": {
-    "mtime": 1794121449.810575,
-    "seen": 1794148526.8879492,
-    "ast_hash": "6e861e8de4168584a3bc11f550383dda",
-    "semantic_hash": "6e861e8de4168584a3bc11f550383dda"
+    "mtime": 1794149508.9449458,
+    "seen": 1794149530.1096745,
+    "ast_hash": "e9ec7b46f6eca49266dca7f51df5b29f",
+    "semantic_hash": ""
   },
   "extension/popup.html": {
     "mtime": 1793793848.9545085,
@@ -82,5 +82,29 @@
     "seen": 1794148526.8879523,
     "ast_hash": "5e11d4dc4887207497d6835028ddbcc4",
     "semantic_hash": "5e11d4dc4887207497d6835028ddbcc4"
+  },
+  "reports/AEGIS_Detailed_Progress_Report.pdf": {
+    "mtime": 1794134843.564491,
+    "seen": 1794149530.1096745,
+    "ast_hash": "9e02c32de7ed884ef049378820be7713",
+    "semantic_hash": ""
+  },
+  "extension/icons/icon_128.png": {
+    "mtime": 1793793872.9424636,
+    "seen": 1794149530.1096745,
+    "ast_hash": "bc8fda3d81a114dd2fb524d614ed1082",
+    "semantic_hash": ""
+  },
+  "extension/icons/icon_16.png": {
+    "mtime": 1793793872.9384642,
+    "seen": 1794149530.1096745,
+    "ast_hash": "21180bb5cfc4bd5f7a33babcb186abe1",
+    "semantic_hash": ""
+  },
+  "extension/icons/icon_48.png": {
+    "mtime": 1793793872.9404893,
+    "seen": 1794149530.1096745,
+    "ast_hash": "a12f467a1b0755c99c1ff8a58ea50925",
+    "semantic_hash": ""
   }
 }
